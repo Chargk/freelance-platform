@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const path = require('path');
 const connectDB = require('./config/db');
 
 // Load env vars
@@ -17,17 +16,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Routes will be here
-// app.use('/api/users', require('./routes/userRoutes'));
-// app.use('/api/boards', require('./routes/boardRoutes'));
+// Routes
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/boards', require('./routes/boardRoutes'));
+app.use('/api/invitations', require('./routes/invitationRoutes'));
 
-// Serve frontend in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
+// Error handling middleware
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode);
+  res.json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
   });
-}
+});
 
 const PORT = process.env.PORT || 5000;
 
