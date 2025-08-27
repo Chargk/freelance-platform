@@ -3,14 +3,8 @@ import { motion } from 'framer-motion';
 import { Task } from './Task';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-
-interface TaskType {
-  id: string;
-  title: string;
-  description: string;
-  deadline?: string;
-  tags?: string[];
-}
+import { useBoardStore } from '../../store/useBoardStore';
+import type { Task as TaskType } from '../../types/board';
 
 interface ColumnProps {
   id: string;
@@ -19,9 +13,15 @@ interface ColumnProps {
 }
 
 export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
+  const { addTask, currentBoard } = useBoardStore();
+
   const handleAddTask = () => {
-    // Will be implemented with Zustand
-    console.log('Add task to column:', id);
+    if (currentBoard) {
+      addTask(currentBoard.id, id, {
+        title: 'New Task',
+        description: 'Add description here',
+      });
+    }
   };
 
   return (
@@ -40,6 +40,7 @@ export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
             <Task
               key={task.id}
               task={task}
+              columnId={id}
             />
           ))}
         </motion.div>

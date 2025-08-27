@@ -2,30 +2,21 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Column } from './Column';
 import { Button } from '../ui/Button';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  deadline?: string;
-  tags?: string[];
-}
-
-interface Column {
-  id: string;
-  title: string;
-  tasks: Task[];
-}
+import { useBoardStore } from '../../store/useBoardStore';
+import type { Column as ColumnType } from '../../types/board';
 
 interface BoardProps {
   title: string;
-  columns: Column[];
+  columns: ColumnType[];
 }
 
 export const Board: React.FC<BoardProps> = ({ title, columns }) => {
+  const { addColumn, currentBoard } = useBoardStore();
+
   const handleAddColumn = () => {
-    // Will be implemented with Zustand
-    console.log('Add column');
+    if (currentBoard) {
+      addColumn(currentBoard.id, 'New Column');
+    }
   };
 
   return (
