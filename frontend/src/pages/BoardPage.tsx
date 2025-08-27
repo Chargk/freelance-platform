@@ -1,7 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Board } from '../components/board/Board';
 import { useBoardStore } from '../store/useBoardStore';
 import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 export const BoardPage: React.FC = () => {
   const { 
@@ -12,25 +15,21 @@ export const BoardPage: React.FC = () => {
     setCurrentBoard 
   } = useBoardStore();
 
-  useEffect(() => {
-    // If there are no boards, create a default one
-    if (boards.length === 0) {
-      createBoard('My First Board');
-    }
-    // If there are boards but no current board, set the first one as current
-    else if (!currentBoard && boards.length > 0) {
-      setCurrentBoard(boards[0].id);
-    }
-  }, [boards, currentBoard, createBoard, setCurrentBoard]);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newBoardTitle, setNewBoardTitle] = useState('');
+  const [isBoardMenuOpen, setIsBoardMenuOpen] = useState(false);
 
   const handleCreateBoard = () => {
-    createBoard('New Board');
+    if (newBoardTitle.trim()) {
+      createBoard(newBoardTitle.trim());
+      setNewBoardTitle('');
+      setIsCreating(false);
+    }
   };
 
   const handleDeleteBoard = () => {
     if (currentBoard) {
       deleteBoard(currentBoard.id);
-      // Set the first remaining board as current, if any
       if (boards.length > 1) {
         const nextBoard = boards.find(board => board.id !== currentBoard.id);
         if (nextBoard) {
@@ -45,7 +44,7 @@ export const BoardPage: React.FC = () => {
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
         <div className="text-center space-y-4">
           <h2 className="text-2xl font-bold">Welcome to your Board</h2>
-          <Button onClick={handleCreateBoard}>Create Your First Board</Button>
+          <Button onClick={() => setIsCreating(true)}>Create Your First Board</Button>
         </div>
       </div>
     );
@@ -54,28 +53,91 @@ export const BoardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <select
-              className="bg-background border rounded-md px-3 py-2"
-              value={currentBoard.id}
-              onChange={(e) => setCurrentBoard(e.target.value)}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => setIsBoardMenuOpen(!isBoardMenuOpen)}
             >
-              {boards.map((board) => (
-                <option key={board.id} value={board.id}>
-                  {board.title}
-                </option>
-              ))}
-            </select>
-            <Button onClick={handleCreateBoard}>New Board</Button>
+              {currentBoard.title}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+            
+            {isBoardMenuOpen && (
+              <Card className="absolute top-full mt-1 w-[200px] z-50">
+                <div className="p-2">
+                  {boards.map((board) => (
+                    <button
+                      key={board.id}
+                      className={`w-full text-left px-2 py-1 rounded hover:bg-accent ${
+                        board.id === currentBoard.id ? 'bg-accent' : ''
+                      }`}
+                      onClick={() => {
+                        setCurrentBoard(board.id);
+                        setIsBoardMenuOpen(false);
+                      }}
+                    >
+                      {board.title}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
-          <Button 
-            variant="destructive" 
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setIsCreating(true)}
+          >
+            <Plus className="h-4 w-4" />
+            New Board
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10 flex items-center gap-2"
             onClick={handleDeleteBoard}
           >
+            <Trash2 className="h-4 w-4" />
             Delete Board
           </Button>
         </div>
+
+        {isCreating && (
+          <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
+            <Card className="w-[400px] p-6">
+              <h3 className="text-lg font-semibold mb-4">Create New Board</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Board Title</label>
+                  <Input
+                    value={newBoardTitle}
+                    onChange={(e) => setNewBoardTitle(e.target.value)}
+                    placeholder="Enter board title"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsCreating(false);
+                      setNewBoardTitle('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleCreateBoard}>Create</Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         <Board title={currentBoard.title} columns={currentBoard.columns} />
       </div>
     </div>

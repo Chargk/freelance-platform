@@ -20,14 +20,16 @@ export const Board: React.FC<BoardProps> = ({ title, columns }) => {
   };
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{title}</h2>
-        <Button onClick={handleAddColumn}>Add Column</Button>
+        <h2 className="text-2xl font-semibold text-foreground/80">{title}</h2>
+        <Button variant="outline" size="sm" onClick={handleAddColumn}>
+          Add Column
+        </Button>
       </div>
       
       <motion.div 
-        className="flex gap-4 overflow-x-auto pb-4"
+        className="flex gap-6 overflow-x-auto pb-4"
         layout
       >
         {columns.map((column) => (
