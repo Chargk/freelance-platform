@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Task } from './Task';
+import { TaskEditModal } from './TaskEditModal';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { useBoardStore } from '../../store/useBoardStore';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import type { Task as TaskType } from '../../types/board';
 
 interface ColumnProps {
@@ -15,20 +16,20 @@ interface ColumnProps {
 
 export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
   const { addTask, deleteColumn, currentBoard } = useBoardStore();
-
-  const handleAddTask = () => {
-    if (currentBoard) {
-      addTask(currentBoard.id, id, {
-        title: 'New Task',
-        description: 'Add description here',
-      });
-    }
-  };
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const handleDeleteColumn = () => {
     if (currentBoard) {
       deleteColumn(currentBoard.id, id);
     }
+  };
+
+  const emptyTask: TaskType = {
+    id: crypto.randomUUID(),
+    title: '',
+    description: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   return (
@@ -65,12 +66,21 @@ export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
         <Button 
           variant="ghost" 
           size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
-          onClick={handleAddTask}
+          className="w-full justify-start text-muted-foreground hover:text-foreground flex items-center gap-2"
+          onClick={() => setIsAddingTask(true)}
         >
-          + Add Task
+          <Plus className="h-4 w-4" />
+          Add Task
         </Button>
       </div>
+
+      {isAddingTask && (
+        <TaskEditModal
+          task={emptyTask}
+          columnId={id}
+          onClose={() => setIsAddingTask(false)}
+        />
+      )}
     </Card>
   );
 };
