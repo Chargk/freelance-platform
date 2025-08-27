@@ -13,7 +13,7 @@ interface ColumnProps {
 }
 
 export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
-  const { addTask, currentBoard } = useBoardStore();
+  const { addTask, deleteColumn, currentBoard } = useBoardStore();
 
   const handleAddTask = () => {
     if (currentBoard) {
@@ -24,12 +24,26 @@ export const Column: React.FC<ColumnProps> = ({ id, title, tasks }) => {
     }
   };
 
+  const handleDeleteColumn = () => {
+    if (currentBoard) {
+      deleteColumn(currentBoard.id, id);
+    }
+  };
+
   return (
     <Card className="w-80 shrink-0">
       <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between group">
           <h3 className="font-semibold">{title}</h3>
-          <span className="text-sm text-muted-foreground">{tasks.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{tasks.length}</span>
+            <button
+              onClick={handleDeleteColumn}
+              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+            >
+              ×
+            </button>
+          </div>
         </div>
         
         <motion.div 
