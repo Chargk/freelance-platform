@@ -15,7 +15,7 @@ export const Board: React.FC<BoardProps> = ({ title, columns }) => {
 
   const handleAddColumn = () => {
     if (currentBoard) {
-      addColumn(currentBoard.id, 'New Column');
+      addColumn(currentBoard._id, 'New Column');
     }
   };
 
@@ -34,8 +34,8 @@ export const Board: React.FC<BoardProps> = ({ title, columns }) => {
       >
         {columns.map((column) => (
           <Column
-            key={column.id}
-            id={column.id}
+            key={column._id}
+            id={column._id}
             title={column.title}
             tasks={column.tasks}
           />

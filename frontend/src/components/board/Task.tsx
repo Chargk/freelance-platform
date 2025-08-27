@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '../ui/Card';
 import { useBoardStore } from '../../store/useBoardStore';
-import { TaskEditModal } from './TaskEditModal';
+import { TaskModal } from './TaskModal';
 import { Pencil, Trash2 } from 'lucide-react';
 import type { Task as TaskType } from '../../types/board';
 
@@ -12,12 +12,36 @@ interface TaskProps {
 }
 
 export const Task: React.FC<TaskProps> = ({ task, columnId }) => {
-  const { deleteTask, currentBoard } = useBoardStore();
+  const { deleteTask, updateTask, currentBoard } = useBoardStore();
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDelete = () => {
-    if (currentBoard) {
-      deleteTask(currentBoard.id, columnId, task.id);
+  const handleDelete = async () => {
+    try {
+      if (currentBoard) {
+        await deleteTask(currentBoard._id, columnId, task._id);
+      }
+    } catch (error: any) {
+      console.error('Failed to delete task:', error);
+      setError(error.message || 'Failed to delete task');
+    }
+  };
+
+  const handleUpdate = async (taskData: {
+    title: string;
+    description: string;
+    deadline?: string;
+    tags?: string[];
+  }) => {
+    try {
+      if (currentBoard) {
+        await updateTask(currentBoard._id, columnId, task._id, taskData);
+        setIsEditing(false);
+        setError(null);
+      }
+    } catch (error: any) {
+      console.error('Failed to update task:', error);
+      setError(error.message || 'Failed to update task');
     }
   };
 
@@ -71,15 +95,24 @@ export const Task: React.FC<TaskProps> = ({ task, columnId }) => {
                 <span>Due {new Date(task.deadline).toLocaleDateString()}</span>
               </div>
             )}
+
+            {error && (
+              <div className="text-sm text-destructive">
+                {error}
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
 
       {isEditing && (
-        <TaskEditModal
-          task={task}
-          columnId={columnId}
-          onClose={() => setIsEditing(false)}
+        <TaskModal
+          onClose={() => {
+            setIsEditing(false);
+            setError(null);
+          }}
+          onSubmit={handleUpdate}
+          initialData={task}
         />
       )}
     </>

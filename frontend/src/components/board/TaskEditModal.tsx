@@ -25,7 +25,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
 
   const handleSave = () => {
     if (currentBoard) {
-      updateTask(currentBoard.id, columnId, task.id, {
+      updateTask(currentBoard._id, columnId, task._id, {
         title,
         description,
         deadline: deadline || undefined,

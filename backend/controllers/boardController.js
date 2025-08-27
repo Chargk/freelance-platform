@@ -51,11 +51,7 @@ const createBoard = asyncHandler(async (req, res) => {
   const board = await Board.create({
     title,
     owner: req.user._id,
-    columns: [
-      { title: 'To Do', tasks: [] },
-      { title: 'In Progress', tasks: [] },
-      { title: 'Done', tasks: [] },
-    ],
+    columns: [], // Створюємо дошку без колонок
   });
 
   res.status(201).json(board);
@@ -104,7 +100,7 @@ const deleteBoard = asyncHandler(async (req, res) => {
     throw new Error('Not authorized to delete this board');
   }
 
-  await board.remove();
+  await Board.findByIdAndDelete(req.params.id);
   res.json({ message: 'Board removed' });
 });
 
@@ -130,6 +126,32 @@ const addColumn = asyncHandler(async (req, res) => {
   board.columns.push({ title, tasks: [] });
   const updatedBoard = await board.save();
 
+  res.json(updatedBoard);
+});
+
+// @desc    Delete column from board
+// @route   DELETE /api/boards/:id/columns/:columnId
+// @access  Private
+const deleteColumn = asyncHandler(async (req, res) => {
+  const board = await Board.findById(req.params.id);
+
+  if (!board) {
+    res.status(404);
+    throw new Error('Board not found');
+  }
+
+  // Check ownership or editor rights
+  const member = board.members.find(m => m.user.equals(req.user._id));
+  if (!board.owner.equals(req.user._id) && (!member || member.role !== 'editor')) {
+    res.status(403);
+    throw new Error('Not authorized to modify this board');
+  }
+
+  board.columns = board.columns.filter(
+    column => column._id.toString() !== req.params.columnId
+  );
+  
+  const updatedBoard = await board.save();
   res.json(updatedBoard);
 });
 
@@ -170,6 +192,38 @@ const addTask = asyncHandler(async (req, res) => {
   res.json(updatedBoard);
 });
 
+// @desc    Delete task from column
+// @route   DELETE /api/boards/:id/columns/:columnId/tasks/:taskId
+// @access  Private
+const deleteTask = asyncHandler(async (req, res) => {
+  const board = await Board.findById(req.params.id);
+
+  if (!board) {
+    res.status(404);
+    throw new Error('Board not found');
+  }
+
+  // Check ownership or editor rights
+  const member = board.members.find(m => m.user.equals(req.user._id));
+  if (!board.owner.equals(req.user._id) && (!member || member.role !== 'editor')) {
+    res.status(403);
+    throw new Error('Not authorized to modify this board');
+  }
+
+  const column = board.columns.id(req.params.columnId);
+  if (!column) {
+    res.status(404);
+    throw new Error('Column not found');
+  }
+
+  column.tasks = column.tasks.filter(
+    task => task._id.toString() !== req.params.taskId
+  );
+
+  const updatedBoard = await board.save();
+  res.json(updatedBoard);
+});
+
 // @desc    Move task between columns
 // @route   PUT /api/boards/:id/tasks/:taskId/move
 // @access  Private
@@ -197,14 +251,17 @@ const moveTask = asyncHandler(async (req, res) => {
     throw new Error('Column not found');
   }
 
-  const task = fromColumn.tasks.id(req.params.taskId);
-  if (!task) {
+  const taskIndex = fromColumn.tasks.findIndex(
+    task => task._id.toString() === req.params.taskId
+  );
+
+  if (taskIndex === -1) {
     res.status(404);
     throw new Error('Task not found');
   }
 
   // Remove task from source column and add to target column
-  fromColumn.tasks.pull(task);
+  const [task] = fromColumn.tasks.splice(taskIndex, 1);
   toColumn.tasks.push(task);
 
   const updatedBoard = await board.save();
@@ -218,6 +275,8 @@ module.exports = {
   updateBoard,
   deleteBoard,
   addColumn,
+  deleteColumn,
   addTask,
+  deleteTask,
   moveTask,
 };

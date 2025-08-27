@@ -7,7 +7,9 @@ const {
   updateBoard,
   deleteBoard,
   addColumn,
+  deleteColumn,
   addTask,
+  deleteTask,
   moveTask,
 } = require('../controllers/boardController');
 const { protect } = require('../middleware/authMiddleware');
@@ -21,8 +23,19 @@ router.route('/:id')
   .put(protect, updateBoard)
   .delete(protect, deleteBoard);
 
-router.post('/:id/columns', protect, addColumn);
-router.post('/:id/columns/:columnId/tasks', protect, addTask);
-router.put('/:id/tasks/:taskId/move', protect, moveTask);
+router.route('/:id/columns')
+  .post(protect, addColumn);
+
+router.route('/:id/columns/:columnId')
+  .delete(protect, deleteColumn);
+
+router.route('/:id/columns/:columnId/tasks')
+  .post(protect, addTask);
+
+router.route('/:id/columns/:columnId/tasks/:taskId')
+  .delete(protect, deleteTask);
+
+router.route('/:id/tasks/:taskId/move')
+  .put(protect, moveTask);
 
 module.exports = router;
