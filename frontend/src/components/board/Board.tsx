@@ -1,0 +1,53 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Column } from './Column';
+import { Button } from '../ui/Button';
+
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  deadline?: string;
+  tags?: string[];
+}
+
+interface Column {
+  id: string;
+  title: string;
+  tasks: Task[];
+}
+
+interface BoardProps {
+  title: string;
+  columns: Column[];
+}
+
+export const Board: React.FC<BoardProps> = ({ title, columns }) => {
+  const handleAddColumn = () => {
+    // Will be implemented with Zustand
+    console.log('Add column');
+  };
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        <Button onClick={handleAddColumn}>Add Column</Button>
+      </div>
+      
+      <motion.div 
+        className="flex gap-4 overflow-x-auto pb-4"
+        layout
+      >
+        {columns.map((column) => (
+          <Column
+            key={column.id}
+            id={column.id}
+            title={column.title}
+            tasks={column.tasks}
+          />
+        ))}
+      </motion.div>
+    </div>
+  );
+};

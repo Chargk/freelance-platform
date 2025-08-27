@@ -16,7 +16,9 @@ export const Header: React.FC = () => {
             <Button variant="ghost" asChild>
               <Link to="/">Projects</Link>
             </Button>
-            <Button variant="ghost">My Tasks</Button>
+            <Button variant="ghost" asChild>
+              <Link to="/board">Board</Link>
+            </Button>
             <Button variant="ghost">Messages</Button>
           </nav>
           <nav className="flex items-center space-x-2">
